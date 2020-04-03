@@ -1,1 +1,2 @@
-Just test: More Detail
+Just test: More Detail.
+Test2
