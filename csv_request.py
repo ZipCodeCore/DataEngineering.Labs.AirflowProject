@@ -1,21 +1,7 @@
+from airflow.operators.python_operator import PythonOperator
+import pandas as pd
 
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
-    # 'wait_for_downstream': False,
-    # 'dag': dag,
-    # 'sla': timedelta(hours=2),
-    # 'execution_timeout': timedelta(seconds=300),
-    # 'on_failure_callback': some_function,
-    # 'on_success_callback': some_other_function,
-    # 'on_retry_callback': another_function,
-    # 'sla_miss_callback': yet_another_function,
-    # 'trigger_rule': 'all_success'
-}
+
 
 dag = DAG(
     'csv_request',
@@ -24,3 +10,25 @@ dag = DAG(
     schedule_interval=timedelta(days=1),
 )
 
+def csv_read(path):
+    for full_file in os.listdir(path):
+        if full_file.endswith('.json'):
+            # full_filename = os.path.join(path, path, full_file)
+            full_filename = os.path.join(path, full_file)
+            with open(full_filename, 'r') as fi:
+                dictionary = json.loads(fi)
+                all_dicts.append(dictionary)
+        return all_
+
+
+t1 = PythonOperator(
+        task_id='download_file',
+        python_callable=download_file_from_ftp,
+        provide_context=True,
+       	},
+  dag=dag)
+
+t1 = DummyOperator()
+
+
+t1 >> t2
