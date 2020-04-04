@@ -2,17 +2,16 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime
-# from airflow.utils.dates import days_ago
-# from airflow.operators.dummy_operator import DummyOperator
+from airflow.utils.dates import days_ago
+from airflow.operators.dummy_operator import DummyOperator
 from datetime import timedelta
 import json
 import requests
-import pprint
 import os
 
 
 default_args = {
-    'owner': 'Norton_Li2',
+    'owner': 'Norton_Li_2',
     'start_date': datetime.now(),
     'retries': 5,
     'retry_delay': timedelta(minutes=1)
@@ -26,35 +25,33 @@ dag = DAG(
 
 
 def get_yelp_api():
-    # category_alis = 'steak'
 
-    # app_id = 'client_id'
-    # app_secret = 'client_secret'
-    # data = {'grant_type': "client_credentials",
-    #         'client_id': app_id,
-    #         'client_secret': app_secret}
-    # token = requests.post('http://api.', data = data)
-    # access_token = token.json('access_token')
+    file_counter = 0
+    offset_counter = 1
+    my_api_key = os.environ('yelp_token')
 
-    my_api_key = os.environ.get('yelp_token')
-    
-    url = 'https://api.yelp.com/v3/businesses/search'
-    headers = {'Authorization': 'bearer %s' % my_api_key}
-
-    params = {'location': 'New_York_City',
-              'term': 'steak_house',
-              'price': '3',
+    while file_counter <= 50:
+        name = 'yelp_restaurants_' + str(file_counter)
+        url = 'https://api.yelp.com/v3/businesses/search'
+        headers = {'Authorization': 'bearer %s' % my_api_key}
+        params = {'location': 'New_York_City',
+                'term': 'michelin',
+                'price': '3, 4',
+                'limit': 50,
+                'offset': 50,
               }
 
-    response = requests.get(url=url, params=params, headers=headers)
-    # pprint.pprint(response.json()['business'])
+        response = requests.get(url=url, params=params, headers=headers)
+        business_data = response.json()
 
-    #convert response to a Json String
-    business_data = response.json()
-    print(json.dumps(business_data, indent=3))
+        with open('/Users/nli/dev/airflow_home/data/' + (name + '.json'), 'w') as outfile:
+            json.dump(business_data, outfile)
+        file_counter += 1
+        offset_counter += 50
 
 
-t4 = PythonOperator(
+
+t1 = PythonOperator(
     task_id='get_yelp_data',
     python_callable=get_yelp_api,
     provide_context=False,
