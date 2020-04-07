@@ -1,16 +1,15 @@
-import pandas as pd
-from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-#from airflow.operators.mysql_operator import MySqlOperator
-from datetime import datetime
+from airflow.utils.dates import days_ago
+import pandas as pd
 from datetime import timedelta
+from airflow import DAG
+from sqlalchemy import create_engine
 import requests
-import pymysql
-import sys
+from datetime import datetime
 
 
 default_args = {
-    'owner': 'Norton_Li5',
+    'owner': 'Norton_Li',
     'start_date': datetime.now(),
     'retries': 5,
     'retry_delay': timedelta(minutes=1)
@@ -58,6 +57,7 @@ def data_etl():
     nyc_h_df.columns = ['project_id', 'borough', 'extremely_low_income_units', 'very_low_income_units',
                         'low_income_units', 'moderate_income_units', 'middle_income_units',
                         'other_income_units', 'total_units']
+    nyc_h_df = nyc_h_df.set_index('project_id')
     nyc_h_df.to_csv('/Users/nli/dev/airflow_home/data/nyc_housing_data_2.csv')
 
 
@@ -69,40 +69,17 @@ t2 = PythonOperator(
 )
 
 
-def csv_to_mysql(load_sql, host, user, password):
-    """
-    This function load a csv file to MySQL table according to
-    the load_sql statement.
-    """
-    try:
-        con = pymysql.connect(host=host,
-                              user=user,
-                              password=password,
-                              autocommit=True,
-                              local_infile=1)
-        print('Connected to DB: {}'.format(host))
-        # Create cursor and execute Load SQL
-        cursor = con.cursor()
-        cursor.execute(load_sql)
-        print('Succuessfully loaded the table from csv.')
-        con.close()
+def csv_to_mysql():
+    conn = create_engine('mysql+pymysql://root:yourpassword@localhost:3306/airflow_project')
+    df = pd.read_csv('/Users/nli/dev/airflow_home/data/nyc_housing_data_2.csv', delimiter=',')
+    df.to_sql(name='nyc_housing', con=conn, schema='airflow_project', if_exists='replace')
 
-    except Exception as e:
-        print('Error: {}'.format(str(e)))
-        sys.exit(1)
-
-
-load_sql = "LOAD DATA LOCAL INFILE '/Users/nli/dev/airflow_home/data/nyc_housing_data_2.csv' INTO TABLE airflow_project.nyc_housing FIELDS TERMINATED BY ',' ENCLOSED BY '' IGNORE 1 LINES;"
-host = '127.0.0.1'
-user = 'root'
-password = 'password'
-csv_to_mysql(load_sql, host, user, password)
 
 t3 = PythonOperator(
-    task_id='csv_to_mysql',
-    python_callable=csv_to_mysql,
-    provide_context=False,
-    dag=dag,
+        task_id='nyc_housing_data_to_mysql',
+        python_callable=csv_to_mysql,
+        dag=dag
 )
+
 
 t1 >> t2 >> t3
