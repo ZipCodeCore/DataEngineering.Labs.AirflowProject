@@ -1,4 +1,5 @@
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.postgres_operator import PostgresOperator
 from airflow.utils.dates import days_ago
 import pandas as pd
 from datetime import timedelta
@@ -6,6 +7,8 @@ from airflow import DAG
 from sqlalchemy import create_engine
 import requests
 from datetime import datetime
+import pdfkit as pdf
+import papermill as pm
 
 default_args = {
     'owner': 'Norton_Li',
@@ -51,7 +54,7 @@ def data_etl():
     nyc_ht_df.columns = ['postcode', 'borough', 'latitude', 'longitude']
     nyc_ht_df = nyc_ht_df.set_index('postcode')
     nyc_ht_df.to_csv('/Users/nli/dev/airflow_home/data/nyc_hotel_data2.csv')
-
+    nyc_ht_df.to_html('/Users/nli/dev/airflow_home/data/nyc_hotel_data2.html')
 
 t2 = PythonOperator(
     task_id='etl_nyc_hotel',
@@ -70,8 +73,48 @@ def csv_to_mysql():
 t3 = PythonOperator(
         task_id='nyc_hotel_data_to_mysql',
         python_callable=csv_to_mysql,
-        dag=dag
+        dag=dag,
 )
 
 
-t1 >> t2 >> t3
+t4 = PostgresOperator(
+    task_id='create_table_postgres_nyc_hotel',
+    postgres_conn_id='postgres_nyc_data',
+    sql='''CREATE TABLE IF NOT EXISTS nyc_data.nyc_hotel(
+            postcode integer,
+            borough varchar(255),
+            latitude float,
+            longitude float);
+            ''',
+    dag=dag,
+
+
+)
+
+path = '/Users/nli/dev/airflow_home/data/nyc_hotel_data2.csv'
+t5 = PostgresOperator(
+    task_id='import_to_postgres',
+    postgres_conn_id='postgres_nyc_data',
+    sql=f"DELETE FROM nyc_data.nyc_hotel; COPY nyc_data.nyc_hotel FROM '{path}' DELIMITER ',' CSV HEADER;",
+    dag=dag,
+)
+
+
+def get_jupyter():
+    pm.execute_notebook('/Users/nli/dev/airflow_home/nyc_hotel_data.ipynb',
+                        '/Users/nli/dev/airflow_home/nyc_hotel_data_output.ipynb',
+                        parameters={'file_name': '/Users/nli/dev/airflow_home/data/nyc_hotel_data2.csv'}
+                        )
+
+
+t6 = PythonOperator(
+    task_id='call_jupyter_report',
+    provide_context=False,
+    python_callable=get_jupyter,
+    dag=dag,
+)
+
+
+t1 >> t2 >> t3,
+t1 >> t2 >> t4 >> t5
+t1 >> t2 >> t6

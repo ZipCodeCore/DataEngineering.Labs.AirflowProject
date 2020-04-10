@@ -1,4 +1,5 @@
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.postgres_operator import PostgresOperator
 from airflow.utils.dates import days_ago
 import pandas as pd
 from datetime import timedelta
@@ -6,6 +7,7 @@ from airflow import DAG
 from sqlalchemy import create_engine
 import requests
 from datetime import datetime
+import papermill as pm
 
 
 default_args = {
@@ -58,7 +60,7 @@ def data_etl():
                         'low_income_units', 'moderate_income_units', 'middle_income_units',
                         'other_income_units', 'total_units']
     nyc_h_df = nyc_h_df.set_index('project_id')
-    nyc_h_df.to_csv('/Users/nli/dev/airflow_home/data/nyc_housing_data_2.csv')
+    nyc_h_df.to_csv('/Users/nli/dev/airflow_home/data/nyc_housing_data2.csv')
 
 
 t2 = PythonOperator(
@@ -71,7 +73,7 @@ t2 = PythonOperator(
 
 def csv_to_mysql():
     conn = create_engine('mysql+pymysql://root:yourpassword@localhost:3306/airflow_project')
-    df = pd.read_csv('/Users/nli/dev/airflow_home/data/nyc_housing_data_2.csv', delimiter=',')
+    df = pd.read_csv('/Users/nli/dev/airflow_home/data/nyc_housing_data2.csv', delimiter=',')
     df.to_sql(name='nyc_housing', con=conn, schema='airflow_project', if_exists='replace')
 
 
@@ -82,4 +84,49 @@ t3 = PythonOperator(
 )
 
 
-t1 >> t2 >> t3
+t4 = PostgresOperator(
+    task_id='create_table_nyc_pb_housing',
+    postgres_conn_id='postgres_nyc_data',
+    sql='''CREATE TABLE IF NOT EXISTS nyc_data.nyc_pb_housing(
+            project_id integer, 
+            borough varchar(255), 
+            extremely_low_income_units integer , 
+            very_low_income_units integer ,
+            low_income_units integer , 
+            moderate_income_units integer , 
+            middle_income_units integer ,
+            other_income_units integer , 
+            total_units integer);
+            ''',
+    dag=dag,
+
+
+)
+
+path = '/Users/nli/dev/airflow_home/data/nyc_housing_data2.csv'
+t5 = PostgresOperator(
+    task_id='import_to_postgres',
+    postgres_conn_id='postgres_nyc_data',
+    sql=f"DELETE FROM nyc_data.nyc_pb_housing; COPY nyc_data.nyc_pb_housing FROM '{path}' DELIMITER ',' CSV HEADER;",
+    dag=dag,
+    )
+
+
+def get_jupyter():
+    pm.execute_notebook('/Users/nli/dev/airflow_home/nyc_housing_data.ipynb',
+                        '/Users/nli/dev/airflow_home/nyc_housing_data_output.ipynb',
+                        parameters={'file_name': '/Users/nli/dev/airflow_home/data/nyc_housing_data2.csv'}
+                        )
+
+
+t6 = PythonOperator(
+    task_id='call_jupyter_report',
+    provide_context=False,
+    python_callable=get_jupyter,
+    dag=dag,
+)
+
+
+t1 >> t2 >> t3,
+t1 >> t2 >> t4 >> t5,
+t1 >> t2 >> t6

@@ -1,10 +1,12 @@
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.postgres_operator import PostgresOperator
 import pandas as pd
 from datetime import timedelta
 from airflow import DAG
 from sqlalchemy import create_engine
 import requests
 from datetime import datetime
+import papermill as pm
 
 
 default_args = {
@@ -75,4 +77,47 @@ t3 = PythonOperator(
 )
 
 
-t1 >> t2 >> t3
+t4 = PostgresOperator(
+    task_id='create_table_nyc_shooting',
+    postgres_conn_id='postgres_nyc_data',
+    sql='''CREATE TABLE IF NOT EXISTS nyc_data.nyc_shooting(
+            occur_date date, 
+            occur_time time, 
+            borough varchar(255) , 
+            precinct integer, 
+            vic_sex varchar(255),
+            latitude float, 
+            longitude float); 
+            ''',
+    dag=dag,
+
+
+)
+
+path = '/Users/nli/dev/airflow_home/data/nyc_shooting_data2.csv'
+t5 = PostgresOperator(
+    task_id = 'import_to_postgres',
+    postgres_conn_id = 'postgres_nyc_data',
+    sql = f"DELETE FROM nyc_data.nyc_shooting; COPY nyc_data.nyc_shooting FROM '{path}' DELIMITER ',' CSV HEADER;",
+    dag = dag,
+    )
+
+
+def get_jupyter():
+    pm.execute_notebook('/Users/nli/dev/airflow_home/nyc_shooting_data.ipynb',
+                        '/Users/nli/dev/airflow_home/nyc_shooting_data_output.ipynb',
+                        parameters={'file_name': '/Users/nli/dev/airflow_home/data/nyc_park2.csv'}
+                        )
+
+
+t6 = PythonOperator(
+    task_id='call_jupyter_report',
+    provide_context=False,
+    python_callable=get_jupyter,
+    dag=dag,
+)
+
+
+t1 >> t2 >> t3,
+t1 >> t2 >> t4 >> t5,
+t1 >> t2 >> t6
