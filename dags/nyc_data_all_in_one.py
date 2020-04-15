@@ -111,19 +111,6 @@ t1e1 = PostgresOperator(
 )
 
 
-# path = '/Users/nli/dev/airflow_home/data/abb_nyc_housing_2019_data2.csv'
-# t1e2 = PostgresOperator(
-#     task_id='import_to_postgres',
-#     postgres_conn_id='postgres_nyc_data',
-#     sql=f"DELETE FROM nyc_data.nyc_abb; COPY nyc_data.nyc_abb FROM '{path}' DELIMITER ',' CSV HEADER;",
-#     dag=dag,
-# )
-
-
-###############################################################
-#NYC_Park_Data
-
-
 def get_park_data():
     """
     NYC park information dataset based on 2019
@@ -187,9 +174,8 @@ t2d1 = PostgresOperator(
             waterfront varchar(255));
             ''',
     dag=dag,
-
-
 )
+
 
 path = '/Users/nli/dev/airflow_home/data/nyc_park_data2.csv'
 t2d2 = PostgresOperator(
