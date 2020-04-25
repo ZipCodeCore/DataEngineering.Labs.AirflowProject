@@ -1,6 +1,6 @@
 # Airflow Project
 
-New York City Airbnb Data correlation with Open Housing Data in 2019
+New York City Airbnb Data correlation with NYC Open Data Study in 2019
 
 ![description_if_image_fails_to_load](https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/AIRBNB_PROJECT_040620.png)
 
