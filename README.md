@@ -24,6 +24,8 @@ Foucs on airbnb price
 Airbnb price prediction model 
 |
 More data analysis, visualization, and final report.
+    
+![description_if_image_fails_to_load]
 
-
+(https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/Airflow_project_Updated050520.png)
 
