@@ -1,6 +1,8 @@
 # Airflow Project
 
 New York City Airbnb Data correlation with NYC Open Data Study in 2019
+![description_if_image_fails_to_load]
+(https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/airflow_flow_chart.png)
 
 ![description_if_image_fails_to_load](https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/Airflow_project_Updated050520.png)
 
@@ -22,6 +24,5 @@ Import to SQL database (MySQL/postgreSQL)
 |
 Load data from database, and use jupyter notebook to show analysis and visualization
     
-![description_if_image_fails_to_load]
-(https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/airflow_flow_chart.png)
+
 
