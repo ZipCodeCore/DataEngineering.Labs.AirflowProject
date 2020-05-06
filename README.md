@@ -2,7 +2,7 @@
 
 New York City Airbnb Data correlation with NYC Open Data Study in 2019
 
-![description_if_image_fails_to_load](https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/AIRBNB_PROJECT_040620.png)
+![description_if_image_fails_to_load](https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/Airflow_project_Updated050520.png)
 
 Question? 
     How to select the valuable place when travel to the NYC?
