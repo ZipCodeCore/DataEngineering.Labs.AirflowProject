@@ -9,14 +9,18 @@ import requests
 from datetime import datetime
 import os
 
+
 mysqlkey = os.environ.get('mysql_key')
-mysqluser = os.environ.get('mysql_user')
 postgreskey = os.environ.get('postgres_key')
-postgresuser = os.environ.get('postgres_user')
+
 
 default_args = {
     'owner': 'Norton_Li',
     'start_date': datetime.now(),
+    #'start_date': datetime.days_ago(2),
+    'email': ['nortonlyr@gmail.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
     'retries': 2,
     'retry_delay': timedelta(minutes=1)
 }
@@ -25,6 +29,7 @@ default_args = {
 dag = DAG(
     dag_id='airbnb_nyc_housing_correlation_study_updated5',
     default_args=default_args,
+    #chedule_interval=timedelta(days=1),
     description='Airbnb NYC housing open data and NYC open data of 2019 study',
     )
 
