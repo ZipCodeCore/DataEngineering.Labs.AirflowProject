@@ -12,20 +12,16 @@ Goal:
     build a model to predict the Airbnb price of future trend.
 
 Flowchart
-Original sources: NYC OPEN DATA, YELP API, Airbnb dataset (from Insider Airbnb)
+Original sources: NYC OPEN DATA, Airbnb dataset (from Insider Airbnb)
 |
-feature info extraction (YELP->airflow, NYC OPEN DATA, airbnb -> direct download<control by airflow>)
+Get requests and download the source 
 |
-Data cleaning and manipulation 
+Preliminary Data cleaning and manipulation 
 |
-Combined multiple datasets and data manipulation, then analysis and visualization,
-Foucs on airbnb price
+Import to SQL database (MySQL/postgreSQL)
 |
-Airbnb price prediction model 
-|
-More data analysis, visualization, and final report.
+Load data from database, and use jupyter notebook to show analysis and visualization
     
 ![description_if_image_fails_to_load]
-
-(https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/Airflow_project_Updated050520.png)
+(https://github.com/nortonlyr/DataEngineering.Labs.AirflowProject/blob/master/airflow_flow_chart.png)
 
