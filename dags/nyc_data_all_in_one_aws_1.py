@@ -28,10 +28,10 @@ default_args = {
 
 
 dag = DAG(
-    dag_id='airbnb_nyc_housing_w_nyc_open_data_study_aws',
+    dag_id='airbnb_nyc_open_data_correlation_study_aws',
     default_args=default_args,
     schedule_interval=timedelta(hours=1),
-    description='Airbnb NYC housing open data and NYC open data of 2019 study',
+    description='Airbnb NYC data and NYC open data of 2019 study',
     )
 
 
